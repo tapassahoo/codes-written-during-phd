@@ -5,9 +5,12 @@ a.out
 *.exe
 *.DAT
 *.dat
+._.DS_Store
+._psiint.f
 #ignore executable
 pimc
 #ignore
+TRIATOMIC-CODES/MPI-CODE-TEST/FINAL/b
 TIME_PROPAGATION/JCP-90-4351-1989/fort*
 /examples/linear_pigs/results/*
 !/examples/linear_pigs/results/

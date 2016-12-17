@@ -1,0 +1,19 @@
+#!/bin/sh
+
+#PBS -l mppwidth=32
+#PBS -l mppnppn=32
+#PBS -r n
+
+##PBS -l mppdepth=32
+#PBS -l walltime=2400:00:00
+
+#PBS -N rpd2.0-j0
+# #PBS -j oe
+
+
+cd $PBS_O_WORKDIR
+ftn -h omp -h pic -dynamic -O3 -Oaggress -Oipa1 -hfp2 -Ovector3 -Oscalar3 -Ocache2 -Ounroll2 -Ofusion2 -ev -h page_align_allocate abc.f -o abc.exe -lhugetlbfs
+ulimit -s unlimited
+export OMP_NUM_THREADS=13
+source /ufs/home/pcsa/intel/bin/compilervars.sh intel64
+HUGETLB_MORECORE=yes aprun -n 1 -N 1 -d 13 -m2000h ./abc.exe

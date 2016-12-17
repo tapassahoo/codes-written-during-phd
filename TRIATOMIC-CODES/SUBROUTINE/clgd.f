@@ -1,0 +1,66 @@
+CCC
+CCC   CALCULATE THE CLEBSCH – GORDAN COEFFICIENTS
+CCC
+      IMPLICIT REAL*8(A-H,O-Z)
+      WRITE(*,*)'J_1','  ','M_1','  ','J_2','  ','M_2','  ','J','  ','M'
+      READ(*,*)AJ_1,AM_1,AJ_2,AM_2,AJ,AM
+      IF(AM.EQ.AM_1+AM_2) THEN
+      DELTA=1.0D0
+      ELSE
+      DELTA=0.0D0
+      ENDIF
+      JJ1=INT(AJ+AJ_1-AJ_2)
+      JJ2=INT(AJ-AJ_1+AJ_2)
+      JJ3=INT(-AJ+AJ_1+AJ_2)
+      JJ4=INT(AJ_1+AJ_2+AJ+1)
+      FAC1=SQRT((2.0D0*AJ+1.0D0)*FACT(JJ1)*FACT(JJ2)
+     1*FACT(JJ3)/FACT(JJ4))
+      JM1=INT(AJ+AM)
+      JM2=INT(AJ-AM)
+      JM3=INT(AJ_1-AM_1)
+      JM4=INT(AJ_1+AM_1)
+      JM5=INT(AJ_2-AM_2)
+      JM6=INT(AJ_2+AM_2)
+      FAC2=SQRT(FACT(JM1)*FACT(JM2)*FACT(JM3)
+     1*FACT(JM4)*FACT(JM5)*FACT(JM6))
+      FAC3=0.0D0
+      DO K=0,20
+      JMK1=INT(AJ_1+AJ_2-AJ-DFLOAT(K))
+      JMK2=INT(AJ_1-AM_1-DFLOAT(K))
+      JMK3=INT(AJ_2+AM_2-DFLOAT(K))
+      JMK4=INT(AJ-AJ_2+AM_1+DFLOAT(K))
+      JMK5=INT(AJ-AJ_1-AM_2+DFLOAT(K))
+      IF(JMK1.LT.0) GO TO 2
+      IF(JMK2.LT.0) GO TO 2
+      IF(JMK3.LT.0) GO TO 2
+      IF(JMK4.LT.0) GO TO 2
+      IF(JMK5.LT.0) GO TO 2
+      WRITE(*,*)K,JMK1,JMK2,JMK3,JMK4,JMK5
+      VAL=FACT(K)*FACT(JMK1)*FACT(JMK2)*FACT(JMK3)
+     1*FACT(JMK4)*FACT(JMK5)
+      FAC3=FAC3+(-1)**K/VAL
+  2   CONTINUE
+      ENDDO
+      CLGD=DELTA*FAC1*FAC2*FAC3
+c     CLGD=CLGD*(-1)**(AJ_2-AJ_1-AM)/SQRT(2.0D0*AJ+1)
+      WRITE(*,*)
+      WRITE(*,*)
+      WRITE(*,44)AJ_1,AM_1,AJ_2,AM_2,AJ,AM
+      WRITE(*,*)
+      WRITE(*,*)'CLGD=',CLGD
+   44 FORMAT(1X,6f12.6)
+      STOP
+      END
+      FUNCTION FACT(N) 
+      IMPLICIT REAL*8(A-H,O-Z)
+      IF(N.EQ.0) THEN
+      VAL=1.0D0
+      ELSE
+      VAL=1.0D0
+      DO I=1,N
+      VAL=VAL*DFLOAT(I)
+      ENDDO
+      ENDIF
+      FACT=VAL
+      RETURN
+      END

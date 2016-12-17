@@ -1,0 +1,96 @@
+      IMPLICIT REAL*8(A-H,O-Z)
+      PARAMETER (N_T=256)
+      PARAMETER (JTOT=100)
+      DIMENSION THE(N_T)
+      DIMENSION PLNITA(101,101)
+      PI=4.0D0*DATAN(1.0D0)
+      DT=PI/DFLOAT(N_T)
+      DO I=1,N_T
+      THE(I)=(I-1)*DT+0.5D0*DT
+      ENDDO
+      WRITE(6,*)'BEFORE NORMALIZATION'
+c     DO JROT=0,5
+      JROT=0
+      SS=0.0D0
+      DO I=1,N_T
+      TH=THE(I)
+      CNT=DCOS(TH)
+      SNT=DSIN(TH)
+      CALL BLEG(CNT,PLNITA,JTOT+1,1) 
+C     CALL BLEG(CNT,PLNITA,JTOT+1,0) 
+c     XT=PLNITA(JTOT+1,JROT+1)
+      XT=PLNITA(JTOT+1,1)
+      WRITE(6,44)TH,XT
+      SS=SS+SNT*XT*XT*DT 
+      ENDDO
+      WRITE(6,*)JTOT,2.0d0*SS*PI
+c     ENDDO
+  44  FORMAT(1X,4F12.6)
+      STOP
+      END
+CCC
+C THIS PROGRAM CALCULATES ASSOCIATED LEGENDRE POLYNOMIALS MULTIPLIED 
+C BY ((2L+1)(L-M)!/(L+M)!/2)**.5/SQRT(2*PHI), I.E. SPHERICAL HARMONICS ARE 
+C Y(L,M,TETA,PHI)=P(L+1,M+1)*EXP(I*M*PHI)
+C   IOP=0  :  P(L)*FAC
+C   IOP=1  :  P(L,M)*FAC
+C   IOP=2  :  P(L)
+C   IOP=3  :  P(L,M) 
+C  
+C   WHERE  FAC=((2*L+1)(L-M)!/(2(L+M)!)**0.5 / SQRT(2PI) 
+C  
+C NOTE THAT X=COS(TE) IN BLEG IS ARGUMENT WHEREAS IN ALEG TE IS
+C ARGUMENT
+      SUBROUTINE BLEG(X,P,N,IOP) 
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION P(101,101)
+      DO 100 I=1,N
+      DO 100 J=1,N
+  100 P(I,J)=0.0D0
+      P(1,1)=1.0D0
+      SX=DSQRT(1.-X**2)
+      P(2,1)=X 
+      N1=N+1
+      DO 1 I=3,N1
+C   1 P(I,1)=((2*I-3)*P(I-1,1)*X-(I-2)*P(I-2,1))/(I-1)
+    1 P(I,1)=2*X*P(I-1,1)-P(I-2,1)-(X*P(I-1,1)-P(I-2,1))/(I-1) 
+      IF (IOP.EQ.2) RETURN 
+      IF (IOP.EQ.0) GO TO 4
+      DO 2 M=1,N
+      M1=M+1
+      DO 2 I=1,N
+      I1=I+1
+      IF (I1.LT.M1) GO TO 2
+      I2=I1-2  
+      P(I1,M1)=(2*I1-3)*SX*P(I1-1,M1-1)
+      IF (M1.LE.I2) P(I1,M1)=P(I1,M1)+P(I2,M1)
+    2 CONTINUE 
+      IF(IOP.EQ.3) RETURN  
+      DO 3 I=1,N1
+      DO 3 J=1,I
+      L=I-1
+      M=J-1
+      P(I,J)=.3989422804*P(I,J)*DSQRT((2.*L+1.)*FAC(L-M)/2./FAC(L+M))
+    3 CONTINUE 
+      RETURN
+    4 DO 5 I=1,N1
+    5 P(I,1)=.2820947918*SQRT(2.*float(I)-1.)*P(I,1)
+      RETURN
+      END
+      FUNCTION FAC(N)
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION ARR(10)
+      DATA ARR/1.0D0,2.0D0,6.0D0,24.0D0,120.0D0,720.0D0,5040.0D0,
+     140320.0D0,362880.0D0,3628800.0D0/
+      IF (N.LT.1) GO TO 1  
+      IF (N.GT.10) GO TO 4 
+      FAC=ARR(N)
+      GO TO 5  
+    4 SU=1.0D0 
+      DO 2 I=1,N
+    2 SU=SU*FLOAT(I)
+      GO TO 3  
+    1 SU=1.0D0 
+    3 FAC=SU
+    5 RETURN
+      END

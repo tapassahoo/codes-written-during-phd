@@ -1,0 +1,148 @@
+CCC
+CCC   EVALUATION OF A_k,mu MATRIX
+CCC
+      IMPLICIT REAL*8(A-H,O-Z)
+      COMPLEX*16 ZI,AA,FAC,BB
+      PARAMETER(NT=256,NP=64)
+      PARAMETER (JTOT=4)
+      PARAMETER (JROT=1)
+      DIMENSION PLT(30,30)
+      DIMENSION PLP(30,30)
+      DIMENSION AA(2*JTOT+1,2*JROT+1)
+      DIMENSION BB(2*JROT+1,2*JROT+1)
+      PI=4.0D0*DATAN(1.0D0)
+      DT=PI/DFLOAT(NT)
+      DP=2.0D0*PI/DFLOAT(NP)
+      ZI=DCMPLX(0.0D0,1.0D0)
+      K1=1
+      DO KK=-JTOT,JTOT,1
+      M1=1
+      DO MM=-JROT,JROT,1
+      AA(K1,M1)=DCMPLX(0.0D0,0.0D0)
+      MPJ=ABS(KK)
+      NPJ=ABS(MM)
+      DO 1 II=1,NT
+      T=(II-1)*DT+0.5D0*DT
+      X=DCOS(T)
+      CALL BLEG(X,PLT,JTOT+1,1) 
+      DO 2 JJ=1,NP
+      P=(JJ-1)*DP+0.5D0*DP
+      Y=-DSIN(T)*DCOS(P)
+      CALL BLEG(Y,PLP,JTOT+1,1) 
+      XI=DASIN(DCOS(T)/SQRT(1.0D0-Y*Y))
+      DENO=SQRT(1.0D0-DSIN(T)*DSIN(T)*DCOS(P)*DCOS(P))
+      CSXI=DSIN(T)*DSIN(P)/DENO
+      SIXI=DCOS(T)/DENO
+c     FAC=(-1)**KK*DEXP(-ZI*KK*P+ZI*MM*XI)
+c    1*PLT(JTOT+1,MPJ+1)*PLP(JTOT+1,NPJ+1)
+      IF(MM.EQ.-1) THEN
+      FAC=(-1)**KK*EXP(-ZI*KK*P)*(CSXI-ZI*SIXI)
+     1*PLT(JTOT+1,MPJ+1)*PLP(JTOT+1,NPJ+1)
+      ENDIF
+      IF(MM.EQ.0) THEN
+      FAC=(-1)**KK*EXP(-ZI*KK*P)
+     1*PLT(JTOT+1,MPJ+1)*PLP(JTOT+1,NPJ+1)
+      ENDIF
+      IF(MM.EQ.1) THEN
+      FAC=(-1)**KK*EXP(-ZI*KK*P)*(CSXI+ZI*SIXI)
+     1*PLT(JTOT+1,MPJ+1)*PLP(JTOT+1,NPJ+1)
+      ENDIF
+      WRITE(17,44)XI,DBLE(FAC),DIMAG(FAC)
+      AA(K1,M1)=AA(K1,M1)+FAC*DSIN(T)*DT*DP
+  2   CONTINUE
+  1   CONTINUE
+      M1=M1+1 
+      ENDDO
+      K1=K1+1 
+      ENDDO
+      DO MM=1,2*JROT+1
+      DO NN=1,2*JROT+1
+      BB(MM,NN)=DCMPLX(0.0D0,0.0D0)
+      DO KK=1,2*JTOT+1
+      BB(MM,NN)=BB(MM,NN)+CONJG(AA(KK,MM))*AA(KK,NN)
+      ENDDO
+      ENDDO
+      ENDDO
+      WRITE(6,*)
+      WRITE(6,44)((DBLE(AA(II,JJ)),JJ=1,2*JROT+1),II=1,2*JTOT+1)
+      WRITE(6,*)
+      WRITE(6,*)
+      WRITE(6,*)
+      WRITE(6,44)((DIMAG(AA(II,JJ)),JJ=1,2*JROT+1),II=1,2*JTOT+1)
+      WRITE(6,*)
+      WRITE(6,*)
+      WRITE(6,*)
+      WRITE(6,*)
+      WRITE(6,44)((DBLE(BB(II,JJ)),JJ=1,2*JROT+1),II=1,2*JROT+1)
+      WRITE(6,*)
+      WRITE(6,*)
+      WRITE(6,*)
+      WRITE(6,44)((DIMAG(BB(II,JJ)),JJ=1,2*JROT+1),II=1,2*JROT+1)
+  44  FORMAT(1X,3f12.6) 
+      RETURN
+      END
+C THIS PROGRAM CALCULATES ASSOCIATED LEGENDRE POLYNOMIALS MULTIPLIED 
+C BY ((2L+1)(L-M)!/(L+M)!/2)**.5/SQRT(2*PHI), I.E. SPHERICAL HARMONICS ARE 
+C Y(L,M,TETA,PHI)=P(L+1,M+1)*EXP(I*M*PHI)
+C   IOP=0  :  P(L)*FAC
+C   IOP=1  :  P(L,M)*FAC
+C   IOP=2  :  P(L)
+C   IOP=3  :  P(L,M) 
+C  
+C   WHERE  FAC=((2*L+1)(L-M)!/(2(L+M)!)**0.5 / SQRT(2PI) 
+C  
+C NOTE THAT X=COS(TE) IN BLEG IS ARGUMENT WHEREAS IN ALEG TE IS
+C ARGUMENT
+      SUBROUTINE BLEG(X,P,N,IOP) 
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION P(30,30)
+      DO 100 I=1,N
+      DO 100 J=1,N
+  100 P(I,J)=0.0D0
+      P(1,1)=1.0D0
+      SX=DSQRT(1.-X**2)
+      P(2,1)=X 
+      N1=N+1
+      DO 1 I=3,N1
+C   1 P(I,1)=((2*I-3)*P(I-1,1)*X-(I-2)*P(I-2,1))/(I-1)
+    1 P(I,1)=2*X*P(I-1,1)-P(I-2,1)-(X*P(I-1,1)-P(I-2,1))/(I-1) 
+      IF (IOP.EQ.2) RETURN 
+      IF (IOP.EQ.0) GO TO 4
+      DO 2 M=1,N
+      M1=M+1
+      DO 2 I=1,N
+      I1=I+1
+      IF (I1.LT.M1) GO TO 2
+      I2=I1-2  
+      P(I1,M1)=(2*I1-3)*SX*P(I1-1,M1-1)
+      IF (M1.LE.I2) P(I1,M1)=P(I1,M1)+P(I2,M1)
+    2 CONTINUE 
+      IF(IOP.EQ.3) RETURN  
+      DO 3 I=1,N1
+      DO 3 J=1,I
+      L=I-1
+      M=J-1
+      P(I,J)=.3989422804*P(I,J)*DSQRT((2.*L+1.)*FAC(L-M)/2./FAC(L+M))
+    3 CONTINUE 
+      RETURN
+    4 DO 5 I=1,N1
+    5 P(I,1)=.2820947918*SQRT(2.*float(I)-1.)*P(I,1)
+      RETURN
+      END
+      FUNCTION FAC(N)
+      IMPLICIT REAL*8(A-H,O-Z)
+      DIMENSION ARR(10)
+      DATA ARR/1.0D0,2.0D0,6.0D0,24.0D0,120.0D0,720.0D0,5040.0D0,
+     140320.0D0,362880.0D0,3628800.0D0/
+      IF (N.LT.1) GO TO 1  
+      IF (N.GT.10) GO TO 4 
+      FAC=ARR(N)
+      GO TO 5  
+    4 SU=1.0D0 
+      DO 2 I=1,N
+    2 SU=SU*FLOAT(I)
+      GO TO 3  
+    1 SU=1.0D0 
+    3 FAC=SU
+    5 RETURN
+      END
