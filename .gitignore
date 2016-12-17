@@ -3,6 +3,8 @@
 fort.*
 a.out
 *.exe
+*.DAT
+*.dat
 #ignore executable
 pimc
 #ignore
