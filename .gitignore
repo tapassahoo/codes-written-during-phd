@@ -1,0 +1,16 @@
+#ignore all object files
+*.o
+fort.*
+a.out
+*.exe
+#ignore executable
+pimc
+#ignore
+TIME_PROPAGATION/JCP-90-4351-1989/fort*
+/examples/linear_pigs/results/*
+!/examples/linear_pigs/results/
+/examples/linear_pigs/analyze.cc
+/examples/linear_pigs/yw001.*
+/examples/linear_pigs/#fort.7#
+/examples/linear_pigs/*/
+!/examples/linear_pigs/
